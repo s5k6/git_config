@@ -21,9 +21,6 @@
     st = status
     sw = switch
 
-#[branch "master"]
-#    mergeoptions = --ff-only
-
 [init]
     templateDir = ~/.config/git/templates/
     defaultBranch = master
@@ -52,3 +49,7 @@
     prompt = false
 [difftool "meld"]
     cmd = meld "$LOCAL" "$REMOTE"
+
+# configure pre commit hook
+[hooks "pre-commit"]
+        failregex = NOCOMMIT

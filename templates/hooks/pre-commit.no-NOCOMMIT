@@ -7,7 +7,14 @@ function warn { echo $'\e[1;35m'"$@"$'\e[m' >&2; }
 function info { echo $'\e[36m'"$@"$'\e[m'; }
 
 
-regex=NOCOMMIT
+if ! regex="$(git config hooks.pre-commit.failregex)"; then
+    warn "${0}: hooks.pre-commit.failregex not set"
+    exit 0
+fi
+
+if test -z "${regex}"; then
+    exit 0
+fi
 
 bad=()
 
@@ -39,7 +46,8 @@ done < <(git status --porcelain=2 -uno --no-renames -z) # Note 1
 
 # abort if list of bad files is not empty
 if test "${#bad[@]}" -gt 0; then
-    err "NOCOMMIT found in: ${bad[@]}"
+    echo "hooks.pre-commit.failregex = ${regex}"
+    err "hooks.pre-commit.failregex found in: ${bad[@]}"
 fi
 
 
