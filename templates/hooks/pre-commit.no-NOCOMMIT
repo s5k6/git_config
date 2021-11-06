@@ -10,13 +10,41 @@ function info { echo $'\e[36m'"$@"$'\e[m'; }
 regex=NOCOMMIT
 
 bad=()
-while IFS=$'\t' read -r -d '' info file; do
-    IFS=' ' read -r mode blob stage <<< "${info}"
-    if git cat-file blob "${blob}" | grep -Eq "${regex}"; then
-        bad+=("${file}")
-    fi
-done < <(git ls-files -z -s)
 
+while IFS=' ' read -r -d '' ord rest; do
+    if test "${ord}" = 1; then
+        IFS=' ' read -r xy sub mH mI mW hH hI path <<< "${rest}"
+
+        # only consider: added, modified, renamed, copied
+        # this skips: deleted, unmerged
+        if ! [[ ${xy:0:1} =~ A|M|R|C ]]; then continue; fi
+
+        # skip submodules
+        if ! [[ ${sub:0:1} =~ N ]]; then continue; fi
+
+        # skip symlinks
+        if test "${mI}" = 120000; then continue; fi
+
+        ### payload of iteration, object is `$hI`, path is `$path`
+
+        if git cat-file blob "${hI}" | grep -Eq "${regex}"; then
+            bad+=("${path}")
+        fi
+
+    else
+        warn "not checking ${ord} ${rest}"
+    fi
+
+done < <(git status --porcelain=2 -uno --no-renames -z) # Note 1
+
+# abort if list of bad files is not empty
 if test "${#bad[@]}" -gt 0; then
     err "NOCOMMIT found in: ${bad[@]}"
 fi
+
+
+# Note 1: `--no-renames` lists renames as an add and a remove.  Only
+# this allows proper use of -z`; Renames would introduce anoter `\0`,
+# making the splitting into lines unreliable.  See case 2,
+# documentation of `<sep>` in git-status(1) Section ‘Changed Tracked
+# Entries’.
