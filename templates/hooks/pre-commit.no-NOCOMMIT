@@ -16,6 +16,10 @@ if test -z "${regex}"; then
     exit 0
 fi
 
+if ! skipFile="$(git config hooks.pre-commit.skipFile)"; then
+    unset skipFile
+fi
+
 bad=()
 
 while IFS=' ' read -r -d '' ord rest; do
@@ -35,6 +39,10 @@ while IFS=' ' read -r -d '' ord rest; do
         ### payload of iteration, object is `$hI`, path is `$path`
 
         if git cat-file blob "${hI}" | grep -Eq "${regex}"; then
+            if test -r "${skipFile-}" && grep -Fq "${path}" "${skipFile}"; then
+                warn "${skipFile} accepts ${path}"
+                continue
+            fi
             bad+=("${path}")
         fi
 
@@ -47,6 +55,7 @@ done < <(git status --porcelain=2 -uno --no-renames -z) # Note 1
 # abort if list of bad files is not empty
 if test "${#bad[@]}" -gt 0; then
     echo "hooks.pre-commit.failregex = ${regex}"
+    echo "hooks.pre-commit.skipFile ${skipFile+= }${skipFile-is unset}"
     err "hooks.pre-commit.failregex found in: ${bad[@]}"
 fi
 
