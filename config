@@ -49,7 +49,3 @@
     prompt = false
 [difftool "meld"]
     cmd = meld "$LOCAL" "$REMOTE"
-
-# configure pre commit hook
-[hooks "pre-commit"]
-        failregex = NOCOMMIT
