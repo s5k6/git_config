@@ -14,7 +14,7 @@
     di = diff --color
     dw = diff --word-diff=color --color
     ff = merge --ff-only
-    latest = for-each-ref --no-contains=HEAD --format='%(committerdate:iso8601)\t%(refname:short)\t%(committerdate:relative)' --sort=committerdate
+    latest = for-each-ref --format='%(committerdate:iso8601)\t%(refname:short)\t%(committerdate:relative)' --sort=committerdate
     lg = log --color --graph --all --abbrev-commit --decorate --pretty=oneline
     ls = ls-files -v
     root = rev-parse --show-toplevel
