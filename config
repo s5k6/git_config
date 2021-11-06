@@ -1,0 +1,54 @@
+[core]
+    editor = emacsclient -a '' -c
+    pager = less -S
+
+[push]
+    default = simple
+
+[include]
+    path = config.local
+
+[alias]
+    br = branch
+    df = diff --stat --color
+    di = diff --color
+    dw = diff --word-diff=color --color
+    ff = merge --ff-only
+    latest = for-each-ref --no-contains=HEAD --format='%(committerdate:iso8601)\t%(refname:short)\t%(committerdate:relative)' --sort=committerdate
+    lg = log --color --graph --all --abbrev-commit --decorate --pretty=oneline
+    ls = ls-files -v
+    root = rev-parse --show-toplevel
+    st = status
+    sw = switch
+
+#[branch "master"]
+#    mergeoptions = --ff-only
+
+[init]
+    templateDir = ~/.config/git/templates/
+    defaultBranch = master
+
+[commit]
+
+[pull]
+    ff = only
+
+[branch "master"]
+    mergeoptions = --no-ff
+
+[filter "lfs"]
+    clean = git-lfs clean -- %f
+    smudge = git-lfs smudge -- %f
+    process = git-lfs filter-process
+    required = true
+
+[gpg]
+    program = gpg
+
+# Set up `meld` for `git difftool`.
+[diff]
+    tool = meld
+[difftool]
+    prompt = false
+[difftool "meld"]
+    cmd = meld "$LOCAL" "$REMOTE"

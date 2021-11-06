@@ -1,0 +1,22 @@
+#!/bin/bash
+set -u -e -C
+shopt -s failglob
+
+function err { echo $'\e[1;31m'"$@"$'\e[m' >&2; exit 1; }
+function warn { echo $'\e[1;35m'"$@"$'\e[m' >&2; }
+function info { echo $'\e[36m'"$@"$'\e[m'; }
+
+
+regex=NOCOMMIT
+
+bad=()
+while IFS=$'\t' read -r -d '' info file; do
+    IFS=' ' read -r mode blob stage <<< "${info}"
+    if git cat-file blob "${blob}" | grep -Eq "${regex}"; then
+        bad+=("${file}")
+    fi
+done < <(git ls-files -z -s)
+
+if test "${#bad[@]}" -gt 0; then
+    err "NOCOMMIT found in: ${bad[@]}"
+fi

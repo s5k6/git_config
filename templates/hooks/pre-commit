@@ -1,0 +1,5 @@
+#!/bin/bash
+set -u -e -C;
+
+.git/hooks/pre-commit.not-master
+.git/hooks/pre-commit.no-NOCOMMIT
