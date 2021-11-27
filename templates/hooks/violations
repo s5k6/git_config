@@ -1,0 +1,9 @@
+# Format: includeGlob → excludeGlob → command
+
+# Files explicitly marked
+*		grep -Eq NOCOMMIT
+
+# Disallow trailing whitespace and tabs, require trailing newline
+*		grep -Eq '\s$'
+*		.git/hooks/lacks-newline
+*	*/Makefile	grep -Eq $'\t'

@@ -1,0 +1,10 @@
+#!/bin/bash
+set -u -e -C
+shopt -s failglob
+
+# Get last character.  If it was a newline, make it an x, otherwise
+# make sure it is not an x.
+lastChar="$(tail -c1 | tr $'\nx' xy)"
+
+# newline is not required on empty files
+test "${lastChar}" != x -a -n "${lastChar}"

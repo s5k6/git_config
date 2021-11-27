@@ -56,5 +56,3 @@
 # Being the last entry gives an opportunity to override all of the above.
 [include]
     path = config.local
-[user]
-	name = Your Name

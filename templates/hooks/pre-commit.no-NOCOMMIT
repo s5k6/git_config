@@ -4,64 +4,140 @@ shopt -s failglob
 
 function err { echo $'\e[1;31m'"$@"$'\e[m' >&2; exit 1; }
 function warn { echo $'\e[1;35m'"$@"$'\e[m' >&2; }
-function info { echo $'\e[36m'"$@"$'\e[m'; }
+function info { echo $'\e[36m'"$@"$'\e[m' >&2; }
 
 
-if ! regex="$(git config hooks.pre-commit.failregex)"; then
-    warn "${0}: hooks.pre-commit.failregex not set"
+# Git config variables used
+
+confViolationsFile='hooks.pre-commit.violationsFile'
+confExemptFile='hooks.pre-commit.exemptFile'
+
+
+
+# Get the path to file that defines which checks to perform on which
+# file.  Warn if not configured, err if file missing.
+
+if ! violationsFile="$(git config "${confViolationsFile}")"; then
+    warn "${confViolationsFile} not set"
     exit 0
 fi
 
-if test -z "${regex}"; then
-    exit 0
+if ! test -r "${violationsFile}"; then
+    err "File not found: ${violationsFile}"
 fi
 
-if ! skipFile="$(git config hooks.pre-commit.skipFile)"; then
-    unset skipFile
-fi
 
-bad=()
+# Read violation definitions.  Tab-separated include glob (which files
+# to cosider), exclude glob (to narrow down), and command to run.
+# Empty lines, and lines starting (at position one) with a hash are
+# ignored.
 
-while IFS=' ' read -r -d '' ord rest; do
-    if test "${ord}" = 1; then
-        IFS=' ' read -r xy sub mH mI mW hH hI path <<< "${rest}"
+declare -i cases=0 lino=0;
+declare -a incl=() excl=() command=();
+while IFS= read -r line; do
+    lino+=1
+    if test -z "${line}"; then continue; fi
+    if test "${line:0:1}" = '#'; then continue; fi
 
-        # only consider: added, modified, renamed, copied
-        # this skips: deleted, unmerged
-        if ! [[ ${xy:0:1} =~ A|M|R|C ]]; then continue; fi
-
-        # skip submodules
-        if ! [[ ${sub:0:1} =~ N ]]; then continue; fi
-
-        # skip symlinks
-        if test "${mI}" = 120000; then continue; fi
-
-        ### payload of iteration, object is `$hI`, path is `$path`
-
-        if git cat-file blob "${hI}" | grep -Eq "${regex}"; then
-            if test -r "${skipFile-}" && grep -Fq "${path}" "${skipFile}"; then
-                warn "${skipFile} accepts ${path}"
-                continue
-            fi
-            bad+=("${path}")
-        fi
-
-    else
-        warn "not checking ${ord} ${rest}"
+    mapfile -t -d $'\t' arr <<< "${line}"
+    if test "${#arr[@]}" -ne 3; then
+        err "${violationsFile}:${lino}: invalid format"
     fi
 
-done < <(git status --porcelain=2 -uno --no-renames -z) # Note 1
+    incl+=("${arr[0]}")
+    excl+=("${arr[1]}")
+    command+=("${arr[2]}")
+    cases+=1
+done < "${violationsFile}"
+unset lino
 
-# abort if list of bad files is not empty
-if test "${#bad[@]}" -gt 0; then
-    echo "hooks.pre-commit.failregex = ${regex}"
-    echo "hooks.pre-commit.skipFile ${skipFile+= }${skipFile-is unset}"
-    err "hooks.pre-commit.failregex found in: ${bad[@]}"
+
+# If a exemptFile is configured, it may list files by complete path to
+# be exempt from the check temporarily.
+
+if ! exemptFile="$(git config "${confExemptFile}")"; then
+    exemptFile=''
 fi
 
 
-# Note 1: `--no-renames` lists renames as an add and a remove.  Only
-# this allows proper use of -z`; Renames would introduce another `\0`,
-# making the splitting into lines unreliable.  See case 2 of,
+# Count of bad files
+declare -i bad=0
+
+
+# Iterate over all files with git-status.  Need to figure out which
+# ones we're really interested in.
+
+while IFS=' ' read -r -d '' ord rest; do
+
+    if test "${ord}" -ne 1; then err "Cannot be: ord=${ord}"; fi  # Note 2
+
+    IFS=' ' read -r xy sub mH mI mW hH hI path <<< "${rest}" # Note 1
+
+    # Only consider added, modified, renamed, copied files.  This
+    # skips: deleted, unmerged files.
+    if ! [[ "${xy:0:1}" =~ A|M|R|C ]]; then continue; fi
+
+    # Skip submodules
+    if ! [[ "${sub:0:1}" =~ N ]]; then continue; fi
+
+    # Skip symlinks
+    if test "${mI}" = 120000; then continue; fi
+
+    # Skip binary files.  Note: Use staged attributes.
+    mapfile -t -d '' arr < <(git check-attr -z --cached binary -- "${path}")
+    if test "${arr[2]}" = set; then continue; fi
+
+    mapfile -t -d '' arr < <(git check-attr -z binary -- "${path}")
+    if test "${arr[2]}" = set; then warn "Unstaged @binary on ${path}"; fi
+
+    # Now we have a file to test.  Iterate over tests, check whether
+    # test is applicable, based on include and exclude globs, run
+    # test, count violations.
+
+    declare -i violations=0
+    for (( i=0; i < cases; i++ )); do
+        if [[ "/${path}" != ${incl[i]} ]]; then continue; fi
+        if [[ "/${path}" == ${excl[i]} ]]; then continue; fi
+
+        if git cat-file blob "${hI}" | eval "${command[i]}"; then
+            printf '%s\tviolates\t%s\n' "${path}" "${command[i]:0:-1}"
+            violations+=1
+        fi
+    done
+
+    # If there were violations...
+    if test "${violations}" -gt 0; then
+        if test -r "${exemptFile}" && grep -Fqx "${path}" "${exemptFile}"; then
+            # Accept violation and warn about that.
+            warn "${exemptFile} exempts ${path}"
+        else
+            bad+=1
+            info "Found ${violations} violations in ${path}"
+            if test "${xy:1:1}" != .; then # Note 1
+                warn "Unstaged changes (${xy:1:1}) on ${path}"
+            fi
+        fi
+    fi
+
+done < <(git status --porcelain=2 -uno --no-renames -z) # Note 2
+
+
+# Abort commit if list of bad files is not empty
+if test "${bad}" -gt 0; then
+    cat >&2 <<.
+Config used:
+    ${confViolationsFile} = ${violationsFile}
+    ${confExemptFile} ${exemptFile:+= }${exemptFile:-is unset}
+.
+    err "Pre commit check violated by ${bad} files."
+fi
+
+
+# Note 1: Read git-status(1) for a reference of the meaning of these
+# fields.
+
+# Note 2: `--no-renames` lists renames as an add and a remove.  Only
+# this allows proper use of -z`; Renames would introduce anoter `\0`,
+# making the splitting into lines unreliable.  See case 2,
 # documentation of `<sep>` in git-status(1) Section ‘Changed Tracked
 # Entries’.
