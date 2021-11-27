@@ -2,7 +2,10 @@
 title: Git configuration for ~/.config/git
 ---
 
-This repository is intended to be cloned as `~/.config/git`.
+This repository is intended to be cloned as `~/.config/git`:
+
+    $ cd ~/.config/
+    $ git clone 'https://github.com/s5k6/git_config' git
 
 Add a file `~/.config/git/config.local` for additional (site-specific)
 configuration, which should not be committed to this repository.

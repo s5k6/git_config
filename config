@@ -2,36 +2,20 @@
     editor = emacsclient -a '' -c
     pager = less -S
 
-[push]
-    default = simple
-
-[include]
-    path = config.local
-
-[alias]
-    br = branch
-    df = diff --stat --color
-    di = diff --color
-    dw = diff --word-diff=color --color
-    ff = merge --ff-only
-    latest = for-each-ref --format='%(committerdate:iso8601)\t%(refname:short)\t%(committerdate:relative)' --sort=committerdate
-    lg = log --color --graph --all --abbrev-commit --decorate --pretty=oneline
-    ls = ls-files -v
-    root = rev-parse --show-toplevel
-    st = status
-    sw = switch
-
 [init]
     templateDir = ~/.config/git/templates/
     defaultBranch = master
 
-[commit]
+[push]
+    default = simple
 
 [pull]
     ff = only
 
 [branch "master"]
     mergeoptions = --no-ff
+
+[commit]
 
 [filter "lfs"]
     clean = git-lfs clean -- %f
@@ -49,3 +33,28 @@
     prompt = false
 [difftool "meld"]
     cmd = meld "$LOCAL" "$REMOTE"
+
+[alias]
+    br = branch
+    st = status
+    sw = switch
+    ff = merge --ff-only
+    lg = log --color --graph --all --abbrev-commit --decorate --pretty=oneline
+    ls = ls-files -v
+    root = rev-parse --show-toplevel
+
+    # diff with granularity of File, usual dIff, or Character
+    df = diff --stat --color
+    di = diff --color
+    dw = diff --word-diff=color --color
+    dc = diff --word-diff=color --word-diff-regex=. --color
+
+    latest = for-each-ref --format='%(committerdate:iso8601)\t%(refname:short)\t%(committerdate:relative)' --sort=committerdate
+
+
+
+# Being the last entry gives an opportunity to override all of the above.
+[include]
+    path = config.local
+[user]
+	name = Your Name

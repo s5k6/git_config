@@ -61,7 +61,7 @@ fi
 
 
 # Note 1: `--no-renames` lists renames as an add and a remove.  Only
-# this allows proper use of -z`; Renames would introduce anoter `\0`,
-# making the splitting into lines unreliable.  See case 2,
+# this allows proper use of -z`; Renames would introduce another `\0`,
+# making the splitting into lines unreliable.  See case 2 of,
 # documentation of `<sep>` in git-status(1) Section ‘Changed Tracked
 # Entries’.
