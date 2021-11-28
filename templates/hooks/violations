@@ -1,9 +1,7 @@
-# Format: includeGlob → excludeGlob → command
+# -*- tab-width: 16 -*- hello Emacs
 
-# Files explicitly marked
+# include	exclude	command
 *		grep -Eq NOCOMMIT
-
-# Disallow trailing whitespace and tabs, require trailing newline
 *		grep -Eq '\s$'
-*		.git/hooks/lacks-newline
 *	*/Makefile	grep -Eq $'\t'
+*		.git/hooks/lacks-newline

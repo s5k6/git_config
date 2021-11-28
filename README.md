@@ -11,58 +11,10 @@ Add a file `~/.config/git/config.local` for additional (site-specific)
 configuration, which should not be committed to this repository.
 
 
-Hooks
-=====
-
-Pre commit
-----------
-
-Newly generated repositories are equipped with the following hooks.
-They are enabled by default, by being listed in the `pre-commit` hook.
-
-
-### Mark source against accidental commit
-
-Hook script [pre-commit.no-NOCOMMIT][1] blocks committing of files
-that contain a given *extended regular expression* (typically just
-`NOCOMMIT`) as understood by grep(1).
-
-The regular expression is configured in the git config setting
-`hooks.pre-commit.failregex`.  If unset, a warning is printed.  If set
-to the empty string, the test is disabled for the entire repository.
-If set to, e.g., `NOCOMMIT` by
-
-    $ git config hooks.pre-commit.failregex NOCOMMIT
-
-then all commits containing files containing `NOCOMMIT` should be
-blocked.
-
-You may want to **temporarily exempt** files from this check, e.g., to
-endorse use of this hook in documentation.  To this end, list the
-files exempt from this check in a file, say `ALLOW_NOCOMMIT`, and
-configure the hook to respect the file:
-
-    $ git config hooks.pre-commit.skipFile ALLOW_NOCOMMIT
-
-Now warnings will be issued, but the commit is not blocked.  You may
-freely choose the name of the file `ALLOW_NOCOMMIT`, but it must be
-located in the repository root, and the exempt files must be listed
-with their complete path from the repository root.  This file should
-not be added to the repository.
-
-
-### Thou shalt not commit to the master
-
-Hook script [pre-commit.not-master][2] blocks commits to the master
-branch, except for the initial one.  This encourages the workflow to
-push to feature branches instead, and only merge into or fast-forward
-to `master`.
-
-
 Git aliases
 ===========
 
-See [config](./config) section `[alias]:
+See [config](./config) section `[alias]`:
 
   * `lg` gives a very compact log and graph.  `latest` shows then the
     latest commit occurred.
@@ -74,6 +26,90 @@ See [config](./config) section `[alias]:
   * Simple abbreviations: `st` = `status`, `sw` = `switch`.
 
 
+Pre commit Hooks
+================
 
-[1]:  ./templates/hooks/pre-commit.no-NOCOMMIT
-[2]: ./templates/hooks/pre-commit.not-master
+Newly generated repositories are equipped with the following hooks.
+They are enabled by default, by being listed in the file
+`.git/hooks/pre-commit.not-master`.
+
+
+Thou shalt not commit to the master
+-----------------------------------
+
+Hook script [pre-commit.not-master][1] blocks commits to the master
+branch, except for the initial one.  This encourages the workflow to
+push to feature branches instead, and only merge into or fast-forward
+to `master`.
+
+
+Source code checks
+------------------
+
+The staged files are checked by [pre-commit.no-NOCOMMIT][2] using
+simple commands or shell scripts .  Of course, checking the commit,
+this works on the *staged* versions of the files, not those in the
+working tree.
+
+First, the files to consider for checking are selected:
+
+  * Only consider files added, modified, renamed or copied by the
+    commit.
+
+  * Skip submodules.
+
+  * Skip symlinks.
+
+  * Skip files with the `binary` [attribute][3] set.  Note, that the
+    staged attributes are used, i.e., unstaged changes in
+    `.gitattributes` have no effect.
+
+Second, the files surviving these filters are matched against entries
+in a *violationsfile*, whose path is configured in
+`hooks.pre-commit.violationsfile`.
+
+
+### Format of the *violationsfile*
+
+Empty lines and lines with a `#` as first character are ignored.  The
+rest is 3 columns, tab-separated.  The columns are: *includeGlob*,
+*excludeGlob*, *command*.
+
+If a file's path matches *includeGlob*, but not *excludeGlob*, then
+its content is piped into *command*.  The matching is performed
+against each line in the *violationsFile*.  If the command succeeds, a
+violation was found.
+
+The globs are matched against the entire path of the file, from the
+repository root, with an added `/` prefix.  Empty globs produce no
+matches, i.e., an empty *includeGlob* disables the test, an empty
+*excludeGlob* does not exclude any files.
+
+The [provided *violationsFile*][4]
+
+  * blocks all files containing the string `NOCOMMIT`,
+
+  * disallows trailing whitespace in all files,
+
+  * disallows tabs except when in Makefiles, and
+
+  * requires all files to have a trailing newline.  This last one is done with a [provided script][5].
+
+
+### Exemptions
+
+One may explicitly exempt individual files from aborting a commit, by
+putting their paths (from the repository root) into an *exemptFile*,
+one per line.  The *exemptFile* must be configured as
+
+    $ git config hooks.pre-commit.exemptFile ${path}
+
+These files will still be testet, but will produce warnings rather
+than blocking a commit.
+
+
+[1]: ./templates/hooks/pre-commit.not-master
+[2]: ./templates/hooks/pre-commit.no-NOCOMMIT
+[3]: https://git-scm.com/docs/gitattributes
+[4]: templates/hooks/violations
+[5]: templates/hooks/lacks-newline
