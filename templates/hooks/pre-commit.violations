@@ -23,7 +23,7 @@ if ! violationsFile="$(git config "${confViolationsFile}")"; then
 fi
 
 if ! test -r "${violationsFile}"; then
-    err "File not found: ${violationsFile}"
+    err "File ${confViolationsFile} not found:  ${violationsFile}"
 fi
 
 

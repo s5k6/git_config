@@ -46,7 +46,7 @@ to `master`.
 Source code checks
 ------------------
 
-The staged files are checked by [pre-commit.no-NOCOMMIT][2] using
+The staged files are checked by [pre-commit.violations][2] using
 simple commands or shell scripts .  Of course, checking the commit,
 this works on the *staged* versions of the files, not those in the
 working tree.
@@ -66,14 +66,13 @@ First, the files to consider for checking are selected:
 
 Second, the files surviving these filters are matched against entries
 in a *violationsfile*, whose path is configured in
-`hooks.pre-commit.violationsfile`.
+`hooks.pre-commit.violationsfile`
 
+    $ cat "$(git config hooks.pre-commit.violationsfile)"
 
-### Format of the *violationsfile*
-
-Empty lines and lines with a `#` as first character are ignored.  The
-rest is 3 columns, tab-separated.  The columns are: *includeGlob*,
-*excludeGlob*, *command*.
+Format of the *violationsfile*: Empty lines and lines with a `#` as
+first character are ignored.  The rest is 3 columns, tab-separated.
+The columns are: *includeGlob*, *excludeGlob*, *command*.
 
 If a file's path matches *includeGlob*, but not *excludeGlob*, then
 its content is piped into *command*.  The matching is performed
@@ -83,7 +82,7 @@ violation was found.
 The globs are matched against the entire path of the file, from the
 repository root, with an added `/` prefix.  Empty globs produce no
 matches, i.e., an empty *includeGlob* disables the test, an empty
-*excludeGlob* does not exclude any files.
+*excludeGlob* never excludes.
 
 The [provided *violationsFile*][4]
 
@@ -93,7 +92,8 @@ The [provided *violationsFile*][4]
 
   * disallows tabs except when in Makefiles, and
 
-  * requires all files to have a trailing newline.  This last one is done with a [provided script][5].
+  * requires all files to have a trailing newline.  This last one is
+    done with a [provided script][5].
 
 
 ### Exemptions
@@ -109,7 +109,7 @@ than blocking a commit.
 
 
 [1]: ./templates/hooks/pre-commit.not-master
-[2]: ./templates/hooks/pre-commit.no-NOCOMMIT
+[2]: ./templates/hooks/pre-commit.violations
 [3]: https://git-scm.com/docs/gitattributes
 [4]: templates/hooks/violations
 [5]: templates/hooks/lacks-newline
