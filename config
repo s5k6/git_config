@@ -1,6 +1,7 @@
 [core]
     editor = emacsclient -a '' -c
     pager = less -S
+    quotePath = false
 
 [init]
     templateDir = ~/.config/git/templates/
@@ -45,9 +46,11 @@
 
     # diff with granularity of File, usual dIff, or Character
     df = diff --stat --color
-    di = diff --color
+    di = diff --color --ws-error-highlight=all
     dw = diff --word-diff=color --color
     dc = diff --word-diff=color --word-diff-regex=. --color
+
+    meld = difftool --dir-diff --tool=meld
 
     latest = for-each-ref --format='%(committerdate:iso8601)\t%(refname:short)\t%(committerdate:relative)' --sort=committerdate
 
