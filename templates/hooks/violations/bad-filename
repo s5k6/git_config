@@ -2,4 +2,4 @@
 set -u -e -C
 shopt -s failglob
 
-grep -Eq '\s$'
+grep -Eq ' ' <<< "${1}"

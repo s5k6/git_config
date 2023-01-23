@@ -25,13 +25,19 @@ See [config](./config) section `[alias]`:
 
   * Simple abbreviations: `st` = `status`, `sw` = `switch`.
 
+  * `latest` lists branches ordered by latest commit date, newest at
+    bottom.
+
+  * `fixup` amends the last commit without changing the commit
+    message.
+
 
 Pre commit Hooks
 ================
 
 Newly generated repositories are equipped with the following hooks.
 They are enabled by default, by being listed in the file
-`.git/hooks/pre-commit.not-master`.
+`.git/hooks/pre-commit`.
 
 
 Thou shalt not commit to the master
@@ -43,73 +49,14 @@ push to feature branches instead, and only merge into or fast-forward
 to `master`.
 
 
-Source code checks
-------------------
+Violations
+----------
 
-The staged files are checked by [pre-commit.violations][2] using
-simple commands or shell scripts .  Of course, checking the commit,
-this works on the *staged* versions of the files, not those in the
-working tree.
-
-First, the files to consider for checking are selected:
-
-  * Only consider files added, modified, renamed or copied by the
-    commit.
-
-  * Skip submodules.
-
-  * Skip symlinks.
-
-  * Skip files with the `binary` [attribute][3] set.  Note, that the
-    staged attributes are used, i.e., unstaged changes in
-    `.gitattributes` have no effect.
-
-Second, the files surviving these filters are matched against entries
-in a *violationsfile*, whose path is configured in
-`hooks.pre-commit.violationsfile`
-
-    $ cat "$(git config hooks.pre-commit.violationsfile)"
-
-Format of the *violationsfile*: Empty lines and lines with a `#` as
-first character are ignored.  The rest is 3 columns, tab-separated.
-The columns are: *includeGlob*, *excludeGlob*, *command*.
-
-If a file's path matches *includeGlob*, but not *excludeGlob*, then
-its content is piped into *command*.  The matching is performed
-against each line in the *violationsFile*.  If the command succeeds, a
-violation was found.
-
-The globs are matched against the entire path of the file, from the
-repository root, with an added `/` prefix.  Empty globs produce no
-matches, i.e., an empty *includeGlob* disables the test, an empty
-*excludeGlob* never excludes.
-
-The [provided *violationsFile*][4]
-
-  * blocks all files containing the string `NOCOMMIT`,
-
-  * disallows trailing whitespace in all files,
-
-  * disallows tabs except when in Makefiles, and
-
-  * requires all files to have a trailing newline.  This last one is
-    done with a [provided script][5].
-
-
-### Exemptions
-
-One may explicitly exempt individual files from aborting a commit, by
-putting their paths (from the repository root) into an *exemptFile*,
-one per line.  The *exemptFile* must be configured as
-
-    $ git config hooks.pre-commit.exemptFile ${path}
-
-These files will still be testet, but will produce warnings rather
-than blocking a commit.
+Hook script [pre-commit.violations][2] runs the test scripts listed in
+the [violations][3] directory, passing the path as 1st argument, and
+the file's contents on stdin.
 
 
 [1]: ./templates/hooks/pre-commit.not-master
 [2]: ./templates/hooks/pre-commit.violations
-[3]: https://git-scm.com/docs/gitattributes
-[4]: templates/hooks/violations
-[5]: templates/hooks/lacks-newline
+[3]: ./templates/hooks/violations/

@@ -56,17 +56,20 @@ while IFS=' ' read -r -d '' ord rest; do
     mapfile -t -d '' arr < <(git check-attr -z binary -- "${path}")
     if test "${arr[2]}" = set; then warn "Unstaged @binary on ${path}"; fi
 
-    # Now we have a file to test.  Iterate over tests, check whether
-    # test is applicable, based on include and exclude globs, run
-    # test, count violations.
+    # Now we have a file to test.  Iterate over tests, pass path as
+    # 1st argument, pipe in file contents.  Count violations.
 
     declare -i violations=0
-    for cmd in .git/hooks/violations/*; do
-        if git cat-file blob "${hI}" | "${cmd}" "${path}"; then
-            printf '%s\tviolates\t%s\n' "${path}" "${cmd}"
-            violations+=1
+    while IFS= read -r cmd; do
+        if test -x "${cmd}"; then
+            if git cat-file blob "${hI}" | "${cmd}" "${path}"; then
+                printf '%s\t%s\n' "${cmd}" "${path}"
+                violations+=1
+            fi
+        else
+            warn "Not executable: ${cmd}"
         fi
-    done
+    done < <(find .git/hooks/violations/ -type f)
 
     # If there were violations...
     if test "${violations}" -gt 0; then
