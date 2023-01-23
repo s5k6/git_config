@@ -1,7 +1,0 @@
-# -*- tab-width: 16 -*- hello Emacs
-
-# include	exclude	command
-*		grep -Eq NOCOMMIT
-*		grep -Eq '\s$'
-*	*/Makefile	grep -Eq $'\t'
-*		.git/hooks/lacks-newline

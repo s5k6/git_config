@@ -10,7 +10,6 @@ function info { echo $'\e[36m'"$@"$'\e[m' >&2; }
 # Git config variables used
 
 confViolationsFile='hooks.pre-commit.violationsFile'
-confExemptFile='hooks.pre-commit.exemptFile'
 
 
 
@@ -24,39 +23,6 @@ fi
 
 if ! test -r "${violationsFile}"; then
     err "File ${confViolationsFile} not found:  ${violationsFile}"
-fi
-
-
-# Read violation definitions.  Tab-separated include glob (which files
-# to cosider), exclude glob (to narrow down), and command to run.
-# Empty lines, and lines starting (at position one) with a hash are
-# ignored.
-
-declare -i cases=0 lino=0;
-declare -a incl=() excl=() command=();
-while IFS= read -r line; do
-    lino+=1
-    if test -z "${line}"; then continue; fi
-    if test "${line:0:1}" = '#'; then continue; fi
-
-    mapfile -t -d $'\t' arr <<< "${line}"
-    if test "${#arr[@]}" -ne 3; then
-        err "${violationsFile}:${lino}: invalid format"
-    fi
-
-    incl+=("${arr[0]}")
-    excl+=("${arr[1]}")
-    command+=("${arr[2]}")
-    cases+=1
-done < "${violationsFile}"
-unset lino
-
-
-# If a exemptFile is configured, it may list files by complete path to
-# be exempt from the check temporarily.
-
-if ! exemptFile="$(git config "${confExemptFile}")"; then
-    exemptFile=''
 fi
 
 
@@ -95,27 +61,19 @@ while IFS=' ' read -r -d '' ord rest; do
     # test, count violations.
 
     declare -i violations=0
-    for (( i=0; i < cases; i++ )); do
-        if [[ "/${path}" != ${incl[i]} ]]; then continue; fi
-        if [[ "/${path}" == ${excl[i]} ]]; then continue; fi
-
-        if git cat-file blob "${hI}" | eval "${command[i]}"; then
-            printf '%s\tviolates\t%s\n' "${path}" "${command[i]:0:-1}"
+    for cmd in .git/hooks/violations/*; do
+        if git cat-file blob "${hI}" | "${cmd}" "${path}"; then
+            printf '%s\tviolates\t%s\n' "${path}" "${cmd}"
             violations+=1
         fi
     done
 
     # If there were violations...
     if test "${violations}" -gt 0; then
-        if test -r "${exemptFile}" && grep -Fqx "${path}" "${exemptFile}"; then
-            # Accept violation and warn about that.
-            warn "${exemptFile} exempts ${path}"
-        else
-            bad+=1
-            info "Found ${violations} violations in ${path}"
-            if test "${xy:1:1}" != .; then # Note 1
-                warn "Unstaged changes (${xy:1:1}) on ${path}"
-            fi
+        bad+=1
+        info "Found ${violations} violations in ${path}"
+        if test "${xy:1:1}" != .; then # Note 1
+            warn "Unstaged changes (${xy:1:1}) on ${path}"
         fi
     fi
 
@@ -124,11 +82,6 @@ done < <(git status --porcelain=2 -uno --no-renames -z) # Note 2
 
 # Abort commit if list of bad files is not empty
 if test "${bad}" -gt 0; then
-    cat >&2 <<.
-Config used:
-    ${confViolationsFile} = ${violationsFile}
-    ${confExemptFile} ${exemptFile:+= }${exemptFile:-is unset}
-.
     err "Pre commit check violated by ${bad} files."
 fi
 
