@@ -1,5 +1,6 @@
 [core]
-    editor = emacsclient -a '' -c
+    #editor = emacsclient -a '' -c
+    editor = nano
     pager = less -S
     quotePath = false
 
@@ -10,13 +11,12 @@
 [push]
     default = simple
 
+# When pulling, only do fast-forward.  When merging, always produce a
+# merge commit.  You may explicitlu fast-forward with the `ff` macro.
 [pull]
     ff = only
-
-[branch "master"]
-    mergeoptions = --no-ff
-
-[commit]
+[merge]
+    ff = false
 
 [filter "lfs"]
     clean = git-lfs clean -- %f
