@@ -1,3 +1,4 @@
+
 [core]
     #editor = emacsclient -a '' -c
     editor = nano
@@ -55,9 +56,4 @@
     latest = for-each-ref --format='%(committerdate:iso8601)\t%(refname:short)\t%(committerdate:relative)' --sort=committerdate
 
     amend = commit --amend
-    fixup = -c core.editor=cat commit --amend
-
-
-# Being the last entry gives an opportunity to override all of the above.
-[include]
-    path = config.local
+    fixup = -c core.editor=true commit --amend

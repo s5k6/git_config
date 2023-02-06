@@ -7,8 +7,17 @@ This repository is intended to be cloned as `~/.config/git`:
     $ cd ~/.config/
     $ git clone 'https://github.com/s5k6/git_config' git
 
-Add a file `~/.config/git/config.local` for additional (site-specific)
-configuration, which should not be committed to this repository.
+Create a file `~/.config/git/config` and *include* `./config.tracked`
+from there:
+
+    $ cat <<. >config
+    [include]
+        path = config.tracked
+    .
+
+This construction is chosen on order to separete site-specific
+configuration from configuration which should be actually tracked.
+Git may modify the file `./config`.
 
 
 Git aliases
