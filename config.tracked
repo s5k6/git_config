@@ -4,6 +4,7 @@
     editor = nano
     pager = less -S
     quotePath = false
+    excludesfile = ~/.config/git/global_gitignore
 
 [init]
     templateDir = ~/.config/git/templates/
@@ -13,7 +14,7 @@
     default = simple
 
 # When pulling, only do fast-forward.  When merging, always produce a
-# merge commit.  You may explicitlu fast-forward with the `ff` macro.
+# merge commit.  You may explicitly fast-forward with the `ff` macro.
 [pull]
     ff = only
 [merge]
@@ -36,9 +37,10 @@
 [difftool "meld"]
     cmd = meld "$LOCAL" "$REMOTE"
 
+
 [alias]
     br = branch
-    st = status
+    st = -c color.status=always status
     sw = switch
     ff = merge --ff-only
     lg = log --color --graph --all --abbrev-commit --decorate --pretty=oneline
