@@ -40,6 +40,7 @@
 
 [alias]
     br = branch
+    tr = branch -vv
     st = -c color.status=always status
     sw = switch
     ff = merge --ff-only
