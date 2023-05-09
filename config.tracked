@@ -44,7 +44,8 @@
     st = -c color.status=always status
     sw = switch
     ff = merge --ff-only
-    lg = log --color --graph --all --abbrev-commit --decorate --pretty=oneline
+    #lg = log --color --graph --all --abbrev-commit --decorate --pretty=oneline
+    lg = log --color --graph --all --decorate --pretty='format:%C(auto)%h%d%C(reset)%n%s%n'
     ls = ls-files -v
     root = rev-parse --show-toplevel
 
