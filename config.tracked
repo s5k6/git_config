@@ -54,6 +54,11 @@
 
 
 
+[advice]
+    detachedHead = true
+
+
+
 [alias]
     br = branch
     tr = branch -vv
