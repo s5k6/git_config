@@ -10,15 +10,23 @@
     templateDir = ~/.config/git/templates/
     defaultBranch = master
 
+
+
 [push]
     default = simple
 
+
+
 # When pulling, only do fast-forward.  When merging, always produce a
 # merge commit.  You may explicitly fast-forward with the `ff` macro.
+
 [pull]
     ff = only
+
 [merge]
     ff = false
+
+
 
 [filter "lfs"]
     clean = git-lfs clean -- %f
@@ -26,16 +34,29 @@
     process = git-lfs filter-process
     required = true
 
+
+
 [gpg]
     program = gpg
 
+
+
 # Set up `meld` for `git difftool`.
+
 [diff]
     tool = meld
+
 [difftool]
     prompt = false
+
 [difftool "meld"]
     cmd = meld "$LOCAL" "$REMOTE"
+
+
+
+[advice]
+    detachedHead = true
+
 
 
 [alias]
@@ -44,7 +65,8 @@
     st = -c color.status=always status
     sw = switch
     ff = merge --ff-only
-    lg = log --color --graph --all --abbrev-commit --decorate --pretty=oneline
+    #lg = log --color --graph --all --abbrev-commit --decorate --pretty=oneline
+    lg = log --color --graph --all --decorate --pretty='format:%C(auto)%h%d%C(reset)%n%s%n'
     ls = ls-files -v
     root = rev-parse --show-toplevel
 
