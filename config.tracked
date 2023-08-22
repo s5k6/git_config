@@ -65,7 +65,7 @@
     st = -c color.status=always status
     sw = switch
     ff = merge --ff-only
-    #lg = log --color --graph --all --abbrev-commit --decorate --pretty=oneline
+    fap = fetch --all --prune
     lg = log --color --graph --all --decorate --pretty='format:%C(auto)%h%d%C(reset)%n%s%n'
     ls = ls-files -v
     root = rev-parse --show-toplevel
@@ -78,7 +78,7 @@
 
     meld = difftool --dir-diff --tool=meld
 
-    latest = for-each-ref --format='%(committerdate:iso8601)\t%(refname:short)\t%(committerdate:relative)' --sort=committerdate
+    latest = for-each-ref --format='%(committerdate:iso8601)\t%(committername)\t%(refname)\t%(committerdate:relative)' --sort=committerdate
 
     amend = commit --amend
     fixup = -c core.editor=true commit --amend
