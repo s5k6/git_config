@@ -32,13 +32,17 @@ See [config](./config) section `[alias]`:
 
   * `ff` fast-forward merge if possible, or fail.
 
-  * Simple abbreviations: `st` = `status`, `sw` = `switch`.
+  * Simple abbreviations: `st` = `status`, `sw` = `switch`, `br` = branch.
+
+  * `um` branches not merged into the current branch, or the branch
+    given.
 
   * `latest` lists branches ordered by latest commit date, newest at
     bottom.
 
-  * `fixup` amends the last commit without changing the commit
-    message.
+  * `amend` amends the last commit and gives opportunity to modify the
+    commit message.  `fixup` amends the last commit without changing
+    the commit message.
 
 
 Pre commit Hooks
