@@ -23,22 +23,24 @@ Git may modify the file `./config`.
 Git aliases
 ===========
 
-See [config](./config) section `[alias]`:
+Have a look at the `[alias]` section in the [config](./config.tracked)
+file.  Just a few are listed here:
 
-  * `lg` gives a very compact log and graph.  `latest` shows then the
-    latest commit occurred.
+  * `lg` gives a very compact log and graph.
 
-  * `dw`, `di` or `df` show diff with granularity of file, line or word.
+  * `df`, `di`, `dw` or `dc` show diff with varying granularity of
+    file, line, word or character.
 
-  * `ff` fast-forward merge if possible, or fail.
+  * `fap` is `fetch --all --prune -v`
 
-  * Simple abbreviations: `st` = `status`, `sw` = `switch`.
+  * `um` shows unmerged branches, i.e., branches not merged into the
+    current branch (or the branch given).
 
   * `latest` lists branches ordered by latest commit date, newest at
     bottom.
 
-  * `fixup` amends the last commit without changing the commit
-    message.
+  * `fixup` amends the last commit.  `amend` additionally allows to
+    edit the commit message.
 
 
 Pre commit Hooks
@@ -46,7 +48,17 @@ Pre commit Hooks
 
 Newly generated repositories are equipped with the following hooks.
 They are enabled by default, by being listed in the file
-`.git/hooks/pre-commit`.
+`.git/hooks/pre-commit`, and can be disabled individually by deleting,
+by commenting out, or by removing the x-bit.
+
+
+Limit file size
+---------------
+
+The script [pre-commit.file-size][4] puts an upper limit on all files
+commited.  The limit defaults to 100kB but may be adjusted by
+explicitly setting `hooks.pre-commit.file-size` to a value in bytes.
+
 
 
 Thou shalt not commit to the master
@@ -69,3 +81,4 @@ the file's contents on stdin.
 [1]: ./templates/hooks/pre-commit.not-master
 [2]: ./templates/hooks/pre-commit.violations
 [3]: ./templates/hooks/violations/
+[4]: ./templates/hooks/pre-commit.file-size
