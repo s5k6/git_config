@@ -1,5 +1,18 @@
 #!/bin/bash
 set -u -e -C;
 
-.git/hooks/pre-commit.not-master
-#.git/hooks/pre-commit.violations
+hooks=(
+    .git/hooks/pre-commit.not-master
+    .git/hooks/pre-commit.file-size
+    .git/hooks/pre-commit.violations
+)
+
+
+function err { echo $'\e[1;31m'"$@"$'\e[m' >&2; exit 1; }
+function warn { echo $'\e[1;35m'"$@"$'\e[m' >&2; }
+
+for h in "${hooks[@]}"; do
+    if test -x "${h}" && ! "${h}"; then
+        err "Hook failed: ${h}"
+    fi
+done

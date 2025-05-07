@@ -1,0 +1,84 @@
+#!/bin/bash
+set -u -e -C
+shopt -s failglob nullglob
+
+exec 0</dev/tty
+exec 1>/dev/tty
+exec 2>&1
+
+function err { echo $'\e[1;31m'"$@"$'\e[m' >&2; exit 1; }
+
+
+
+# Git config variables used
+
+confVar='hooks.pre-commit.file-size'
+
+
+
+# Get limit from config, or default to 100kB
+
+declare -i limit
+if ! limit="$(git config "${confVar}")"; then
+    limit=100000   # 100kB
+fi
+
+
+
+# Largest of excessively large files
+
+declare -i largest=0
+
+
+# Iterate over all files with git-status.  Need to figure out which
+# ones we're really interested in.
+
+while IFS=' ' read -r -d '' ord rest; do
+
+    if test "${ord}" -ne 1; then err "Cannot be: ord=${ord}"; fi  # Note 2
+
+    IFS=' ' read -r xy sub mH mI mW hH hI path <<< "${rest}" # Note 1
+
+    # Only consider added, modified, renamed, copied files.  This
+    # skips: deleted, unmerged files.
+    if ! [[ "${xy:0:1}" =~ A|M|R|C ]]; then continue; fi
+
+    # Skip submodules
+    if ! [[ "${sub:0:1}" =~ N ]]; then continue; fi
+
+    # Skip symlinks
+    if test "${mI}" = 120000; then continue; fi
+
+    # Now we have a file to test.  Iterate over tests, pass path as
+    # 1st argument, pipe in file contents.  Count violations.
+
+    declare -i size="$(git cat-file -s "${hI}")"
+    if test "${size}" -gt "${limit}"; then
+        printf '%12d  %s\n' "${size}" "${path}"
+        largest=$(( size > largest ? size : largest ))
+    fi
+
+done < <(git status --porcelain=2 -uno --no-renames -z) # Note 2
+
+
+
+# Abort commit if list of bad files is not empty
+
+if test "${largest}" -gt 0; then
+    cat <<.
+Some files exceed the size limit of ${limit} bytes.  You may try to raise
+the limit using: git config set hooks.pre-commit.file-size ${largest}
+.
+    exit 1
+fi
+
+
+
+# Note 1: Read git-status(1) for a reference of the meaning of these
+# fields.
+
+# Note 2: `--no-renames` lists renames as an add and a remove.  Only
+# this allows proper use of -z`; Renames would introduce anoter `\0`,
+# making the splitting into lines unreliable.  See case 2,
+# documentation of `<sep>` in git-status(1) Section ‘Changed Tracked
+# Entries’.
