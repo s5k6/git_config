@@ -60,29 +60,40 @@
 
 
 [alias]
+
+    ## simpley abbreviations ##
+
     br = branch
-    cp = cherry-pick -n
+    sw = switch
+
+
+    ## info ##
+
     tr = branch -vv
     st = -c color.status=always status
-    sw = switch
-    ff = merge --ff-only
-    fap = fetch --all --prune -v
     lg = log --color --graph --all --decorate --pretty='format:%C(auto)%h%d%C(reset)%n%s%n'
     ls = ls-files -v
     root = rev-parse --show-toplevel
+
+    # list branches not merged into current or supplied branch if given
+    um = !git --no-pager branch -a --no-merged
+
+    latest = for-each-ref --format='%(committerdate:iso8601)\t%(committername)\t%(refname)\t%(committerdate:relative)' --sort=committerdate
 
     # diff with granularity of File, usual dIff, or Character
     df = diff --stat --color
     di = diff --color --ws-error-highlight=all
     dw = diff --word-diff=color --color
     dc = diff --word-diff=color --word-diff-regex=. --color
-
-    # list branches not merged into current or supplied branch if given
-    um = !git --no-pager branch -a --no-merged
-
     meld = difftool --dir-diff --tool=meld
 
-    latest = for-each-ref --format='%(committerdate:iso8601)\t%(committername)\t%(refname)\t%(committerdate:relative)' --sort=committerdate
 
+    ## operations ##
+
+    cp = cherry-pick -n
+    ff = merge --ff-only
+    fap = fetch --all --prune -v
+
+    # modify last commit
     amend = commit --amend
     fixup = -c core.editor=true commit --amend
