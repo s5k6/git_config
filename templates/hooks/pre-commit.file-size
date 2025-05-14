@@ -49,8 +49,7 @@ while IFS=' ' read -r -d '' ord rest; do
     # Skip symlinks
     if test "${mI}" = 120000; then continue; fi
 
-    # Now we have a file to test.  Iterate over tests, pass path as
-    # 1st argument, pipe in file contents.  Count violations.
+    # Now we have a file to test.
 
     declare -i size="$(git cat-file -s "${hI}")"
     if test "${size}" -gt "${limit}"; then
@@ -64,10 +63,14 @@ done < <(git status --porcelain=2 -uno --no-renames -z) # Note 2
 
 # Abort commit if list of bad files is not empty
 
-if test "${largest}" -gt 0; then
+if test "${largest}" -gt "${limit}"; then
     cat <<.
-Some files exceed the size limit of ${limit} bytes.  You may try to raise
-the limit using: git config set hooks.pre-commit.file-size ${largest}
+Some files exceed the size limit of ${limit} bytes.
+You may raise the limit using
+
+    \$ git config set '${confVar}' ${largest}
+
+but that may turn out to be a bad idea.
 .
     exit 1
 fi

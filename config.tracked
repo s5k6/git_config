@@ -74,6 +74,7 @@
     lg = log --color --graph --all --decorate --pretty='format:%C(auto)%h%d%C(reset)%n%s%n'
     ls = ls-files -v
     root = rev-parse --show-toplevel
+    at = !git --no-pager log -n1 --decorate --pretty='format:%h%d%n'
 
     # list branches not merged into current or supplied branch if given
     um = !git --no-pager branch -a --no-merged
