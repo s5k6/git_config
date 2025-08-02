@@ -93,8 +93,8 @@
 
     cp = cherry-pick -n
     ff = merge --ff-only
-    fap = fetch --all --prune -v
+    fap = fetch --all --prune
 
     # modify last commit
-    amend = commit --amend
-    fixup = -c core.editor=true commit --amend
+    amend = commit --amend --reset-author
+    fixup = -c core.editor=true commit --amend --reset-author

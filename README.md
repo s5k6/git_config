@@ -7,17 +7,18 @@ This repository is intended to be cloned as `~/.config/git`:
     $ cd ~/.config/
     $ git clone 'https://github.com/s5k6/git_config' git
 
-Create a file `~/.config/git/config` and *include* `./config.tracked`
-from there:
-
-    $ cat <<. >config
-    [include]
-        path = config.tracked
-    .
+The provided `config` file only includes `config.tracked`, which is
+part of this repository, and `config.local`, which does not yet exist.
 
 This construction is chosen on order to separete site-specific
 configuration from configuration which should be actually tracked.
-Git may modify the file `./config`.
+One should create a `local` branch containing `config.local`, tracking
+site-specific configuration.
+
+When using the `git config` CLI to modify configuration, git will
+modify `./config`, which nicely keeps apart changes myde through the
+CLI, leaving them there for you to move to `config.local` or
+`config.tracked` later on.
 
 
 Git aliases
@@ -58,7 +59,6 @@ Limit file size
 The script [pre-commit.file-size][4] puts an upper limit on all files
 commited.  The limit defaults to 100kB but may be adjusted by
 explicitly setting `hooks.pre-commit.file-size` to a value in bytes.
-
 
 
 Thou shalt not commit to the master
