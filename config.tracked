@@ -61,40 +61,56 @@
 
 [alias]
 
-    ## simpley abbreviations ##
+## simple abbreviations ##
+br = branch
+sw = switch
+ls = ls-files
 
-    br = branch
-    sw = switch
+# Which branch tracks what remote or worktree:
+tr = branch -vv
 
+# Cherry pick but no commit:
+cp = cherry-pick -n
 
-    ## info ##
+# Fetch all with prune:
+fap = fetch --all --prune
 
-    tr = branch -vv
-    st = -c color.status=always status
-    lg = log --color --graph --all --decorate --pretty='format:%C(auto)%h%d%C(reset)%n%s%n'
-    ls = ls-files -v
-    root = rev-parse --show-toplevel
-    at = !git --no-pager log -n1 --decorate --pretty='format:%h%d%n'
+# Fast-forward:
+ff = merge --ff-only
 
-    # list branches not merged into current or supplied branch if given
-    um = !git --no-pager branch -a --no-merged
+# Add, list, delete or fix worktrees:
+wa = worktree add
+wl = worktree list
+wd = worktree remove
+wf = worktree repair
 
-    latest = for-each-ref --format='%(committerdate:iso8601)\t%(committername)\t%(refname)\t%(committerdate:relative)' --sort=committerdate
+# Status:
+st = -c color.status=always status --short
 
-    # diff with granularity of File, usual dIff, or Character
-    df = diff --stat --color
-    di = diff --color --ws-error-highlight=all
-    dw = diff --word-diff=color --color
-    dc = diff --word-diff=color --word-diff-regex=. --color
-    meld = difftool --dir-diff --tool=meld
+# Very compact log with graph:
+lg = log --color --graph --all --decorate --pretty='format:%C(auto)%h%d%C(reset)%n%s%n'
 
+# Show repository root:
+root = rev-parse --show-toplevel
 
-    ## operations ##
+# Show topmost commit in log, i.e., where we work from
+at = !git --no-pager log -n1 --decorate --pretty='format:%h%d %ci%n'
 
-    cp = cherry-pick -n
-    ff = merge --ff-only
-    fap = fetch --all --prune
+# list unmerged branches (into current or supplied branch if given)
+um = !git --no-pager branch -a --no-merged
 
-    # modify last commit
-    amend = commit --amend --reset-author
-    fixup = -c core.editor=true commit --amend --reset-author
+# Show branches ordered by date of last commit
+latest = for-each-ref --format='%(committerdate:iso8601)\t%(committername)\t%(refname)\t%(committerdate:relative)' --sort=committerdate
+
+# diff with granularity of File, usual dIff, or Character
+df = diff --stat --color
+di = diff --color --ws-error-highlight=all
+dw = diff --word-diff=color --color
+dc = diff --word-diff=color --word-diff-regex=. --color
+
+# diff using meld:
+meld = difftool --dir-diff --tool=meld
+
+# Modify last commit:
+amend = commit --amend --reset-author
+fixup = -c core.editor=true commit --amend --reset-author

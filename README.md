@@ -2,46 +2,56 @@
 title: Git configuration for ~/.config/git
 ---
 
-This repository is intended to be cloned as `~/.config/git`:
-
-    $ cd ~/.config/
-    $ git clone 'https://github.com/s5k6/git_config' git
-
 The provided `config` file only includes `config.tracked`, which is
 part of this repository, and `config.local`, which does not yet exist.
 
 This construction is chosen on order to separete site-specific
-configuration from configuration which should be actually tracked.
-One should create a `local` branch containing `config.local`, tracking
-site-specific configuration.
+configuration from configuration local to a machine or user.  In order
+to track `config.local` as well, create a `local` branch.  Merge from
+`master` into `local`, but not the other way.
 
-When using the `git config` CLI to modify configuration, git will
+When using the `git config` CLI to modify configuration, `git` will
 modify `./config`, which nicely keeps apart changes myde through the
 CLI, leaving them there for you to move to `config.local` or
 `config.tracked` later on.
 
 
+Install
+-------
+
+This repository may be cloned as `~/.config/git`.  However, if you
+want to track own configuration as well, rather clone elsewhere and
+check out a [worktree][5] at `~/.config/git`, tracking the `local`
+branch.
+
+    $ mv ~/.config/git ~/.config/git_old
+
+    $ git clone 'https://github.com/s5k6/git_config'
+    $ cd git_config
+    $ git worktree add -b local ~/.config/git
+
+Copy the configuration items you want to keep from the old
+configuration into a new file `~/.config/git/config.local` and commit
+it to the `local` branch:
+
+    $ cd ~/.config/git
+    $ edit config.local
+    $ git add config.local
+
+
+Features
+========
+
 Git aliases
-===========
+-----------
 
-Have a look at the `[alias]` section in the [config](./config.tracked)
-file.  Just a few are listed here:
+Try
 
-  * `lg` gives a very compact log and graph.
+    $ git config get --all --show-names --regexp ^alias
 
-  * `df`, `di`, `dw` or `dc` show diff with varying granularity of
-    file, line, word or character.
+or find documenting commentary in the `[alias]` section in the file
+[config.tracked](./config.tracked).
 
-  * `fap` is `fetch --all --prune -v`
-
-  * `um` shows unmerged branches, i.e., branches not merged into the
-    current branch (or the branch given).
-
-  * `latest` lists branches ordered by latest commit date, newest at
-    bottom.
-
-  * `fixup` amends the last commit.  `amend` additionally allows to
-    edit the commit message.
 
 
 Pre commit Hooks
@@ -82,3 +92,4 @@ the file's contents on stdin.
 [2]: ./templates/hooks/pre-commit.violations
 [3]: ./templates/hooks/violations/
 [4]: ./templates/hooks/pre-commit.file-size
+[5]: https://git-scm.com/docs/git-worktree
