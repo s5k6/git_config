@@ -1,5 +1,0 @@
-#!/bin/bash
-set -u -e -C
-shopt -s failglob
-
-grep -Eq ' ' <<< "${1}"

@@ -1,23 +1,11 @@
 #!/bin/bash
-set -u -e -C;
-shopt -s nullglob;
-
-exec 0</dev/tty;
-exec 1>/dev/tty;
-exec 2>&1;
-
-function err {
-    if test -t 2; then
-        echo $'\e[1;31m'"$@"$'\e[m'
-    else
-        echo "$@"
-    fi >&2
-    exit 1
-}
+set -u -e -C
+shopt -s nullglob
 
 if git log -n0 &>/dev/null; then
     b="$(git symbolic-ref HEAD)"
     if test "$b" = "refs/heads/master"; then
-        err 'Thou shalt not commit to the master.'
-    fi;
+        echo 'Thou shalt not commit to the master.'
+        exit 1
+    fi
 fi

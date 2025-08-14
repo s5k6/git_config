@@ -67,7 +67,7 @@ sw = switch
 ls = ls-files
 
 # Which branch tracks what remote or worktree:
-tr = branch -vv
+tr = !git --no-pager branch -vv
 
 # Cherry pick but no commit:
 cp = cherry-pick -n

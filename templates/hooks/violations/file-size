@@ -1,0 +1,22 @@
+#!/bin/bash
+set -u -e -C
+shopt -s failglob
+
+read -r modeHead modeIndex modeWorktree hashHead hashIndex path <<< "$@"
+
+# Skip symlinks
+if test "${modeIndex}" = 120000; then exit 0; fi
+
+confVar='hooks.pre-commit.file-size'
+
+declare -i limit
+if ! limit="$(git config "${confVar}")"; then
+    limit=100000   # 100kB
+fi
+
+declare -i size="$(git cat-file -s "${hashIndex}")"
+
+if test "${size}" -gt "${limit}"; then
+    echo "exceeds ${confVar}=${limit}: ${path}"
+    exit 1
+fi

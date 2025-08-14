@@ -1,0 +1,14 @@
+#!/bin/bash
+set -u -e -C
+shopt -s failglob
+
+read -r modeHead modeIndex modeWorktree hashHead hashIndex path <<< "$@"
+
+# Skip symlinks
+if test "${modeIndex}" = 120000; then exit 0; fi
+
+# Skip binary files.  Note: Use staged attributes.
+mapfile -t -d '' arr < <(git check-attr -z --cached text -- "${path}")
+if test "${arr[2]}" = unset; then exit 0; fi
+
+! git cat-file blob "${hashIndex}" | grep -Eq '\s$'

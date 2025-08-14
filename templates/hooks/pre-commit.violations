@@ -7,27 +7,17 @@ function warn { echo $'\e[1;35m'"$@"$'\e[m' >&2; }
 function info { echo $'\e[36m'"$@"$'\e[m' >&2; }
 
 
-# Git config variables used
-
-confViolationsFile='hooks.pre-commit.violationsFile'
-
-
-
-# Get the path to file that defines which checks to perform on which
-# file.  Warn if not configured, err if file missing.
-
-if ! violationsFile="$(git config "${confViolationsFile}")"; then
-    warn "${confViolationsFile} not set"
-    exit 0
-fi
-
-if ! test -r "${violationsFile}"; then
-    err "File ${confViolationsFile} not found:  ${violationsFile}"
-fi
-
-
 # Count of bad files
 declare -i bad=0
+
+tests=()
+shopt -s nullglob
+shopt -u failglob
+for t in .git/hooks/violations/*; do
+    if ! test -x "${t}" -a -f "${t}"; then continue; fi
+    tests+=( "${t}" )
+done
+shopt -s failglob
 
 
 # Iterate over all files with git-status.  Need to figure out which
@@ -37,7 +27,7 @@ while IFS=' ' read -r -d '' ord rest; do
 
     if test "${ord}" -ne 1; then err "Cannot be: ord=${ord}"; fi  # Note 2
 
-    IFS=' ' read -r xy sub mH mI mW hH hI path <<< "${rest}" # Note 1
+    IFS=' ' read -r xy sub mH mI mW hH hI path <<< "${rest}"
 
     # Only consider added, modified, renamed, copied files.  This
     # skips: deleted, unmerged files.
@@ -46,35 +36,20 @@ while IFS=' ' read -r -d '' ord rest; do
     # Skip submodules
     if ! [[ "${sub:0:1}" =~ N ]]; then continue; fi
 
-    # Skip symlinks
-    if test "${mI}" = 120000; then continue; fi
-
-    # Skip binary files.  Note: Use staged attributes.
-    mapfile -t -d '' arr < <(git check-attr -z --cached binary -- "${path}")
-    if test "${arr[2]}" = set; then continue; fi
-
-    mapfile -t -d '' arr < <(git check-attr -z binary -- "${path}")
-    if test "${arr[2]}" = set; then warn "Unstaged @binary on ${path}"; fi
-
     # Now we have a file to test.  Iterate over tests, pass path as
     # 1st argument, pipe in file contents.  Count violations.
 
     declare -i violations=0
-    while IFS= read -r cmd; do
-        if test -x "${cmd}"; then
-            if git cat-file blob "${hI}" | "${cmd}" "${path}"; then
-                printf '%s\t%s\n' "${cmd}" "${path}"
-                violations+=1
-            fi
-        else
-            warn "Not executable: ${cmd}"
+    for t in "${tests[@]}"; do
+        if ! "${t}" "${mH}" "${mI}" "${mW}" "${hH}" "${hI}" "${path}"; then
+            warn "${t}:" "${path}"
+            violations+=1
         fi
-    done < <(find .git/hooks/violations/ -type f)
+    done
 
     # If there were violations...
     if test "${violations}" -gt 0; then
         bad+=1
-        info "Found ${violations} violations in ${path}"
         if test "${xy:1:1}" != .; then # Note 1
             warn "Unstaged changes (${xy:1:1}) on ${path}"
         fi
@@ -85,7 +60,8 @@ done < <(git status --porcelain=2 -uno --no-renames -z) # Note 2
 
 # Abort commit if list of bad files is not empty
 if test "${bad}" -gt 0; then
-    err "Pre commit check violated by ${bad} files."
+    echo "Pre commit check violated by ${bad} files."
+    exit 1
 fi
 
 

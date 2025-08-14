@@ -1,3 +1,0 @@
-# configure pre commit hook
-[hooks "pre-commit"]
-    violationsFile = .git/hooks/violations
