@@ -3,11 +3,12 @@ set -u -e -C
 shopt -s failglob
 
 function err { echo $'\e[1;31m'"$@"$'\e[m' >&2; exit 1; }
-function warn { echo $'\e[1;35m'"$@"$'\e[m' >&2; }
+
+dotGit="$(git rev-parse --git-common-dir)"
 
 shopt -s nullglob
 shopt -u failglob
-for h in .git/hooks/pre-commit.*; do
+for h in "${dotGit}"/hooks/pre-commit.*; do
     if ! test -x "${h}"; then continue; fi
     if ! "${h}"; then
         err "Hook failed: ${h}"

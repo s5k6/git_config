@@ -10,10 +10,13 @@ function info { echo $'\e[36m'"$@"$'\e[m' >&2; }
 # Count of bad files
 declare -i bad=0
 
+
+dotGit="$(git rev-parse --git-common-dir)"
+
 tests=()
 shopt -s nullglob
 shopt -u failglob
-for t in .git/hooks/violations/*; do
+for t in "${dotGit}"/hooks/violations/*; do
     if ! test -x "${t}" -a -f "${t}"; then continue; fi
     tests+=( "${t}" )
 done
